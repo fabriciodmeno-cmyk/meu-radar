@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RADAR V22 + GESTÃO PRO</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
+    <style>
+        html { zoom: 1.15; }
+        :root {
+            --bg: #000;
+            --card: #111;
+            --primary: #00ff95; 
+            --danger: #ff3131;  
+            --text: #ffffff;
+            --accent: #ccff00;
+        }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; min-height: 100vh; }
+        .container { max-width: 100%; margin: auto; display: flex; flex-direction: column; gap: 10px; padding-bottom: 40px; }
+        .nav-tabs { display: flex; gap: 5px; margin-bottom: 5px; position: sticky; top: 0; z-index: 100; background: #000; padding: 5px 0; }
+        .tab-btn { flex: 1; padding: 12px; border: none; background: #222; color: #888; cursor: pointer; border-radius: 8px; font-weight: bold; text-transform: uppercase; font-size: 0.85rem; }
+        .tab-btn.active { background: var(--primary); color: #000; box-shadow: 0 0 10px var(--primary); }
+        .card { background: var(--card); border: 2px solid #333; border-radius: 12px; padding: 12px; }
+        .label { color: var(--accent); font-size: 0.9rem; font-weight: bold; text-transform: uppercase; margin-bottom: 8px; display: block; border-left: 4px solid var(--accent); padding-left: 8px; }
+        .contador-neon { display: flex; justify-content: space-around; background: #111; padding: 10px; border-radius: 12px; border: 1px solid #333; }
+        .count-num { font-size: 2.5rem; font-weight: 900; line-height: 1; }
+        .neon-red { color: #ff3131; text-shadow: 0 0 10px #ff3131; }
+        .neon-black { color: #fff; text-shadow: 0 0 10px #aaa; }
+        .teclado { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; background: #111; padding: 8px; border-radius: 12px; border: 2px solid #333; }
+        .n { border: none; color: #fff; padding: 18px 0; font-weight: 900; font-size: 1.2rem; border-radius: 6px; cursor: pointer; }
+        .red { background: #ff3131; border-bottom: 3px solid #8b0000; }
+        .black { background: #2b2b2b; border-bottom: 3px solid #000; }
+        .green { background: #00ff41; grid-column: span 6; color: #000; font-size: 1.5rem; }
+        .painel-giros { background: #111; border: 1px solid #444; border-radius: 12px; padding: 8px; display: flex; gap: 8px; overflow-x: auto; min-height: 100px; }
+        .giro-item { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 75px; }
+        .mini-ball { min-width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1rem; border: 2px solid #fff; }
+        .tag { font-size: 0.65rem; font-weight: bold; padding: 2px; border-radius: 3px; text-transform: uppercase; width: 100%; text-align: center; display: block; }
+        
+        .ciclo-selector { display: flex; gap: 5px; margin-bottom: 10px; }
+        .ciclo-btn { flex: 1; padding: 8px; border: 1px solid #444; background: #222; color: #fff; border-radius: 6px; font-weight: bold; font-size: 0.75rem; cursor: pointer; }
+        .ciclo-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
+
+        .tag-alto { background: #ff00ff !important; color: #fff !important; } 
+        .tag-baixo { background: #00ffff !important; color: #000 !important; }
+        .tag-par { color: #00d9ff; border: 1px solid #00d9ff; } .tag-impar { color: #ff9100; border: 1px solid #ff9100; }
+        .d1 { color: #00d9ff; border: 1px solid #00d9ff; } .d2 { color: #ffff00; border: 1px solid #ffff00; } .d3 { color: #ff00ff; border: 1px solid #ff00ff; }
+        .c1 { color: #00ffaa; border: 1px solid #00ffaa; } .c2 { color: #ff9100; border: 1px solid #ff9100; } .c3 { color: #ffffff; border: 1px solid #ffffff; }
+        .setor-zero { background: #00ff41; color: #000; } .setor-voisins { background: #ffea00; color: #000; } .setor-tier { background: #ff9100; color: #000; } .setor-orph { background: #bc13fe; color: #fff; }
+
+        .gestao-header { font-family: 'Playfair Display', serif; font-style: italic; font-size: 28px; color: var(--primary); text-align: center; margin-bottom: 15px; }
+        .placar { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .placar-item { padding: 12px; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
+        input { background: #1f2937; border: 1px solid #333; border-radius: 8px; padding: 12px; color: white; width: 100%; text-align: center; box-sizing: border-box; font-size: 1.1rem; }
+        .btn-gestao { padding: 18px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 1.1rem; }
+        .chart-container { height: 180px; margin: 15px 0; }
+        .day-row { display: grid; grid-template-columns: 45px 1fr 1fr 1fr 1.2fr; gap: 5px; padding: 12px 5px; border-bottom: 1px solid #222; font-size: 0.8rem; align-items: center; }
+        .day-header { font-weight: bold; color: var(--accent); border-bottom: 2px solid #444; margin-top: 15px; font-size: 0.75rem; }
+        .row-meta { background: rgba(0, 255, 149, 0.2) !important; color: #fff; border-left: 4px solid var(--primary); }
+        .row-stop { background: rgba(255, 49, 49, 0.2) !important; color: #fff; border-left: 4px solid var(--danger); }
+        .row-atual { background: rgba(255, 255, 255, 0.1); border-left: 4px solid var(--accent); }
+        @keyframes piscar { 0% { opacity: 1; border-color: #fff; } 50% { opacity: 0.3; border-color: transparent; } 100% { opacity: 1; border-color: #fff; } }
+        .tendencia-ativa { animation: piscar 0.5s infinite !important; border: 2px solid #fff !important; }
+        .gold-confluencia { border: 3px solid var(--accent) !important; box-shadow: 0 0 12px var(--accent); transform: scale(1.05); z-index: 5; }
+        .hidden { display: none; }
+        .txt-red { color: #ff3131; } .txt-white { color: #ffffff; } .txt-green { color: #00ff41; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('radar')">Radar de Jogo</button>
+        <button class="tab-btn" onclick="switchTab('gestao')">Gestão de Banca</button>
+    </div>
+
+    <div id="tab-radar">
+        <div class="contador-neon">
+            <div style="text-align:center"><small>VERMELHO</small><br><span id="txtVermelho" class="count-num neon-red">0</span></div>
+            <div style="text-align:center"><small>PRETO</small><br><span id="txtPreto" class="count-num neon-black">0</span></div>
+        </div>
+        <div class="teclado" id="teclado"><button class="n green" onclick="add(0)">0</button></div>
+        
+        <div class="card">
+            <div class="ciclo-selector">
+                <button class="ciclo-btn active" id="btn14" onclick="setLimite(14)">ANALISAR 14 GIROS</button>
+                <button class="ciclo-btn" id="btn50" onclick="setLimite(50)">ANALISAR 50 GIROS</button>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
+                <span class="label" style="margin:0">HISTÓRICO</span>
+                <span id="cicloCont" style="background:#222; color:var(--accent); padding:4px 12px; border-radius:10px; font-weight:bold; font-size:0.9rem; border:1px solid var(--accent)">0 / 14</span>
+            </div>
+            <div id="painelGiros" class="painel-giros"></div>
+        </div>
+
+        <div class="card">
+            <span class="label" id="labelRegiaoForte">MONITOR DE REGIÕES</span>
+            <div id="regioes" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;"></div>
+            <div id="displayAlvosRegiao" style="margin-top: 10px; display: none;">
+                <div id="alvosRegiaoForte" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 6px;"></div>
+            </div>
+        </div>
+        <div class="card">
+            <span class="label">RADAR DE OCULTOS (TOP 9)</span>
+            <div id="somas" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;"></div>
+        </div>
+        <div id="sugestao" class="card" style="display:none; border: 2px solid var(--accent); text-align: center;">
+            <span style="color:var(--accent); font-weight:bold;">🎯 FAMÍLIA DO ALVO: <span id="alvoID"></span></span>
+            <div id="fichas" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 8px;"></div>
+        </div>
+        <div style="display: flex; gap: 8px; margin-top: 5px;">
+            <button onclick="undo()" style="flex:1; padding:15px; background:#ff9800; border:none; border-radius:8px; color:white; font-weight:bold;">CORRIGIR</button>
+            <button onclick="limpar()" style="flex:1; padding:15px; background:#f44336; border:none; border-radius:8px; color:white; font-weight:bold;">LIMPAR</button>
+        </div>
+    </div>
+
+    <div id="tab-gestao" class="hidden">
+        <div class="gestao-header">Fabricio Henrique</div>
+        <div class="placar">
+            <div class="placar-item"><small>DIAS META</small><br><span id="countMeta" style="font-size:1.3rem; font-weight:bold">0</span></div>
+            <div class="placar-item"><small>DIAS STOP</small><br><span id="countStop" style="font-size:1.3rem; font-weight:bold">0</span></div>
+        </div>
+        <div class="card" style="margin-top:10px">
+            <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:5px; margin-bottom:10px">
+                <div><label style="font-size:9px">INICIAL</label><input type="number" id="inpBanca" value="500" onchange="resetValoresDefault(); atualizarUI();"></div>
+                <div><label style="font-size:9px">META %</label><input type="number" id="inpMeta" value="10" onchange="atualizarUI();"></div>
+                <div><label style="font-size:9px">STOP %</label><input type="number" id="inpStop" value="15" onchange="atualizarUI();"></div>
+            </div>
+            <div style="text-align: center; margin-bottom: 10px;">
+                <small>BANCA ATUAL</small><br>
+                <span style="font-size: 1.8rem; font-weight: bold; color: var(--primary);" id="bancaAtualDisplay">R$ 500,00</span>
+            </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 10px; text-align: center; margin-bottom: 10px; border: 1px solid var(--primary);">
+                <small style="color: var(--primary);">VALOR DIFERENTE? (OPCIONAL)</small>
+                <input type="number" id="valorRealInput" placeholder="Vazio = Automático" style="font-size:1.1rem; border:1px solid #444; margin-top:5px; width:80%">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <button class="btn-gestao" style="background: var(--primary); color:black" onclick="registrarAcao('meta')">✅ GANHEI</button>
+                <button class="btn-gestao" style="background: var(--danger); color:white" onclick="registrarAcao('stop')">❌ PERDI</button>
+            </div>
+            <div class="chart-container"><canvas id="grafico"></canvas></div>
+            <div class="day-row day-header">
+                <div>DIA</div><div>INÍCIO</div><div>META(+)</div><div>STOP(-)</div><div>BANCA F.</div>
+            </div>
+            <div id="listaDias"></div>
+            <button onclick="zerarTudo()" style="background:none; border:none; color:#555; width:100%; margin-top:20px; font-size:10px;">REINICIAR TUDO</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let limiteGiros = 14;
+    const pesosMaster = {
+        1: {1:1, 6:1, 4:1, 2:2, 5:1, 7:1, 3:1, 8:1, 9:1}, 2: {2:1, 7:2, 3:2, 9:1, 1:1, 5:1, 4:1, 6:1, 8:1}, 3: {3:2, 8:3, 4:1, 2:1},
+        4: {4:1, 3:1, 1:2, 7:1, 8:1, 0:1}, 5: {5:1, 6:1, 0:1, 8:1, 2:1}, 6: {6:1, 9:1, 7:2, 1:1, 5:2, 3:1}, 7: {7:2, 4:1, 2:1, 6:1, 0:1},
+        8: {8:1, 5:2, 3:1, 1:1, 0:1}, 9: {9:1, 5:1, 4:2, 8:1, 6:1, 7:1, 3:1, 2:1}, 10: {1:2, 5:2, 0:1, 4:1}, 11: {2:1, 3:2, 9:1, 5:1, 7:1},
+        12: {3:1, 1:1, 8:1, 2:1, 6:1, 0:1}, 13: {2:1, 7:1, 3:1, 9:2, 5:1, 4:1, 6:1, 8:1, 1:1}, 14: {5:1, 3:2, 7:1, 2:2, 4:2, 6:1, 8:1},
+        15: {5:2, 4:1, 8:1, 0:1, 1:2, 6:1, 7:1, 3:2}, 16: {7:1, 5:1, 6:2, 2:2, 8:1, 4:1}, 17: {8:1, 6:1, 7:3, 1:1, 3:2, 9:1, 5:1},
+        18: {8:1, 7:2, 4:1, 2:2, 5:1, 3:1, 6:1}, 19: {0:2, 4:2, 6:2, 5:1}, 20: {2:1, 1:1, 5:2, 7:1, 3:1, 9:1, 4:1, 6:1, 8:1},
+        21: {3:2, 2:2, 4:1, 7:1, 8:1, 6:1, 5:1, 9:1}, 22: {4:1, 9:2, 7:3, 3:1}, 23: {5:1, 0:1, 8:2, 2:2, 6:1, 4:1, 3:1, 7:1, 9:1},
+        24: {6:2, 2:1, 5:4, 7:2, 3:3, 8:1, 9:1, 4:1}, 25: {7:1, 3:2, 8:2, 6:1, 4:2, 2:1}, 26: {8:1, 4:1, 0:1, 7:1, 5:1, 3:1},
+        27: {9:1, 5:2, 4:1, 2:2, 6:2, 7:1, 3:1, 8:1}, 28: {6:1, 0:2, 7:2, 3:2, 1:1, 8:1, 5:1}, 29: {2:1, 7:3, 9:2, 3:2, 1:1, 4:1, 6:1, 8:1, 5:1},
+        30: {3:1, 2:2, 8:1, 6:1}, 31: {4:2, 9:2, 5:2, 3:2, 7:3, 2:1, 1:1, 6:1, 8:1}, 32: {5:2, 1:1, 0:1, 6:2, 4:2, 8:2, 2:2, 3:1, 7:1, 9:1},
+        33: {3:2, 7:2, 5:2, 1:1, 9:1, 6:1}, 34: {7:1, 1:1, 6:3, 8:2, 4:2, 2:2, 5:1, 3:1, 9:1}, 35: {8:2, 3:3, 1:2, 2:2, 5:3, 4:1, 6:1, 7:1, 9:1},
+        36: {9:1, 3:2, 2:2, 4:1, 6:2, 8:1, 5:1, 7:1}
+    };
+    const vermelhos = [1,3,5,7,9,12,14,16,18,19,21,23,25,27,30,32,34,36];
+    const ZERO_REG = [0, 32, 15, 12, 26, 3, 35];
+    const VOISINS = [22, 18, 29, 7, 28, 19, 4, 21, 2, 25]; 
+    const TIER = [27, 13, 36, 11, 30, 8, 23, 10, 5, 24, 16, 33];
+    const ORPH = [1, 20, 14, 31, 9, 6, 34, 17];
+    const regioesMapeadas = { "2/3": [2, 11, 20, 14, 21, 25, 30, 36], "6/5": [6, 15, 24, 33, 16, 27, 32], "7/6": [7, 18, 25, 34, 6, 17, 28, 29, 27], "8/3": [8, 26, 35, 0, 3, 12, 30, 17, 25, 28], "9/4": [9, 18, 27, 36, 13, 31, 22, 29, 19, 4], "5": [5, 10, 23, 14, 16, 27, 32] };
+    
+    let giros = [];
+
+    function setLimite(valor) {
+        limiteGiros = valor;
+        document.getElementById('btn14').classList.toggle('active', valor === 14);
+        document.getElementById('btn50').classList.toggle('active', valor === 50);
+        if(giros.length > limiteGiros) giros = giros.slice(-limiteGiros);
+        processarRadar();
+    }
+
+    const tec = document.getElementById('teclado');
+    for(let i=1; i<=36; i++) {
+        let c = vermelhos.includes(i) ? 'red' : 'black';
+        tec.innerHTML += `<button class="n ${c}" onclick="add(${i})">${i}</button>`;
+    }
+
+    function add(n) { giros.push(n); if(giros.length > limiteGiros) giros.shift(); processarRadar(); }
+    function undo() { giros.pop(); processarRadar(); }
+    function limpar() { giros = []; processarRadar(); }
+
+    function getD(n) { if(n===0) return {t:"Z", c:""}; if(n<=12) return {t:"D1", c:"d1"}; if(n<=24) return {t:"D2", c:"d2"}; return {t:"D3", c:"d3"}; }
+    function getC(n) { if(n===0) return {t:"Z", c:""}; let r=n%3; if(r===1) return {t:"C1", c:"c1"}; if(r===2) return {t:"C2", c:"c2"}; return {t:"C3", c:"c3"}; }
+    function getS(n) { if(ZERO_REG.includes(n)) return {n:"ZERO", c:"setor-zero"}; if(VOISINS.includes(n)) return {n:"VOI", c:"setor-voisins"}; if(TIER.includes(n)) return {n:"TIER", c:"setor-tier"}; if(ORPH.includes(n)) return {n:"ORP", c:"setor-orph"}; return {n:"?", c:""}; }
+
+    function colorirTitulo(str) {
+        return str.split(/(\/)/).map(parte => {
+            if (parte === "/") return parte;
+            let num = parseInt(parte);
+            if (isNaN(num)) return parte;
+            let corClass = num === 0 ? "txt-green" : (vermelhos.includes(num) ? "txt-red" : "txt-white");
+            return `<span class="${corClass}">${parte}</span>`;
+        }).join('');
+    }
+
+    function processarRadar() {
+        const pGiros = document.getElementById('painelGiros'); pGiros.innerHTML = '';
+        document.getElementById('cicloCont').innerText = `${giros.length} / ${limiteGiros}`;
+        let placarPesos = {0:0, 1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0};
+        let fReg = { "2/3":0, "6/5":0, "7/6":0, "8/3":0, "9/4":0, "5":0 };
+        let v=0, p=0;
+
+        giros.forEach((n) => {
+            if(n !== 0) { if(vermelhos.includes(n)) v++; else p++; }
+            let d=getD(n), c=getC(n), s=getS(n);
+            pGiros.innerHTML += `<div class="giro-item">
+                <div class="mini-ball" style="background:${n===0?'#00ff41':(vermelhos.includes(n)?'#ff3131':'#2b2b2b')}">${n}</div>
+                <div style="display:flex; width:100%; gap:2px"><span class="tag ${d.c}">${d.t}</span><span class="tag ${c.c}">${c.t}</span></div>
+                <span class="tag ${n===0?'':(n%2===0?'tag-par':'tag-impar')}">${n===0?'ZERO':(n%2===0?'PAR':'IMP')}</span>
+                <span class="tag ${n===0?'':(n>=19?'tag-alto':'tag-baixo')}">${n===0?'ZERO':(n>=19?'ALTO':'BAIXO')}</span>
+                <span class="tag ${s.c}">${s.n}</span>
+            </div>`;
+            if(pesosMaster[n]) { for(let term in pesosMaster[n]) { placarPesos[term] += pesosMaster[n][term]; } }
+            for(let r in regioesMapeadas) { if(regioesMapeadas[r].includes(n)) fReg[r]++; }
+        });
+
+        document.getElementById('txtVermelho').innerText = v;
+        document.getElementById('txtPreto').innerText = p;
+        let entries = Object.entries(placarPesos).sort((a,b) => b[1]-a[1]);
+        renderSomas(entries);
+        renderRegioes(fReg, v, p, entries.length > 0 ? entries[0][0] : null);
+        pGiros.scrollLeft = pGiros.scrollWidth;
+    }
+
+    function renderSomas(entries) {
+        const sDiv = document.getElementById('somas'); sDiv.innerHTML = '';
+        if(entries.length === 0) return;
+        let top = entries[0][0];
+        entries.slice(0, 9).forEach(([num, peso]) => {
+            if(peso === 0) return;
+            let nI = parseInt(num);
+            let cor = nI==0?'#00ff41':(vermelhos.includes(nI)?'#ff3131':'#2b2b2b');
+            sDiv.innerHTML += `<div style="background:${cor}; border:1px solid ${num==top?'#ccff00':'#333'}; padding:6px; text-align:center; border-radius:8px">
+                <span style="font-weight:bold; font-size:1.1rem">${num}</span><br><small style="color:#ccff00">${peso}X</small>
+            </div>`;
+        });
+    }
+
+    function renderRegioes(fReg, v, p, terminalAlvo) {
+        const rDiv = document.getElementById('regioes');
+        const alvosDiv = document.getElementById('alvosRegiaoForte');
+        rDiv.innerHTML = ''; alvosDiv.innerHTML = '';
+        let maxR = Math.max(...Object.values(fReg));
+        let regForte = "";
+        let tendencia = v === p ? null : (v > p ? 'V' : 'P');
+        for(let r in fReg) {
+            let isForte = fReg[r] === maxR && maxR > 0;
+            if(isForte && !regForte) regForte = r;
+            rDiv.innerHTML += `<div style="background:#1a1a1a; padding:8px; border-radius:8px; text-align:center; border:1px solid ${isForte?'#ccff00':'#333'}">
+                <span style="font-weight:bold">${colorirTitulo(r)}</span><br><small style="color:#ccff00">${fReg[r]}X</small>
+            </div>`;
+        }
+        if(regForte) {
+            document.getElementById('displayAlvosRegiao').style.display = 'block';
+            document.getElementById('labelRegiaoForte').innerHTML = `FOCO: REGIÃO ${colorirTitulo(regForte)}`;
+            regioesMapeadas[regForte].forEach(num => {
+                let segueCor = (tendencia === 'V' && vermelhos.includes(num)) || (tendencia === 'P' && num !== 0 && !vermelhos.includes(num));
+                let corBall = num===0?'#00ff41':(vermelhos.includes(num)?'#ff3131':'#2b2b2b');
+                alvosDiv.innerHTML += `<div class="mini-ball ${segueCor?'tendencia-ativa':''}" style="background:${corBall}">${num}</div>`;
+            });
+            updateRadarFichas(terminalAlvo, regioesMapeadas[regForte]);
+        }
+    }
+
+    function updateRadarFichas(alvo, numerosRegiaoForte) {
+        const sugDiv = document.getElementById('sugestao');
+        const fichasDiv = document.getElementById('fichas');
+        if(!alvo) return;
+        sugDiv.style.display = 'block'; fichasDiv.innerHTML = '';
+        document.getElementById('alvoID').innerText = alvo;
+        
+        for(let i=0; i<=36; i++) {
+            let d1 = Math.floor(i/10), d2 = i%10;
+            let mostrar = false;
+            
+            if (i < 10) { 
+                if (i == alvo) mostrar = true; 
+            } else {
+                if (d1 + d2 == alvo || Math.abs(d1 - d2) == alvo) mostrar = true;
+            }
+
+            if(mostrar) {
+                let isGold = numerosRegiaoForte.includes(i);
+                let cor = i===0?'#00ff41':(vermelhos.includes(i)?'#ff3131':'#2b2b2b');
+                fichasDiv.innerHTML += `<div class="mini-ball ${isGold?'gold-confluencia':''}" style="background:${cor}">${i}</div>`;
+            }
+        }
+    }
+
+    let bancaAtual, diaAtual, metas, stops, historicoBanca, historicoValores, grafico;
+    function initGestao() {
+        const salvo = JSON.parse(localStorage.getItem('dadosGestaoFH_AutoV1'));
+        if (salvo) {
+            bancaAtual = salvo.bancaAtual; diaAtual = salvo.diaAtual; metas = salvo.metas; stops = salvo.stops;
+            historicoBanca = salvo.historicoBanca; historicoValores = salvo.historicoValores || [];
+            document.getElementById('inpBanca').value = salvo.inpBanca;
+            document.getElementById('inpMeta').value = salvo.inpMeta;
+            document.getElementById('inpStop').value = salvo.inpStop;
+        } else { resetValoresDefault(); }
+        atualizarUI();
+    }
+    function resetValoresDefault() { 
+        bancaAtual = parseFloat(document.getElementById('inpBanca').value) || 500; 
+        diaAtual = 1; metas = 0; stops = 0; historicoBanca = [bancaAtual]; historicoValores = [];
+    }
+    function registrarAcao(tipo) {
+        const mPerc = parseFloat(document.getElementById('inpMeta').value) / 100;
+        const sPerc = parseFloat(document.getElementById('inpStop').value) / 100;
+        let valorManual = parseFloat(document.getElementById('valorRealInput').value);
+        let valorFinal;
+        if (tipo === 'meta') { 
+            valorFinal = isNaN(valorManual) ? (bancaAtual * mPerc) : valorManual;
+            bancaAtual += valorFinal; metas++; historicoValores.push({tipo: 'meta', valor: valorFinal}); 
+        } else { 
+            valorFinal = isNaN(valorManual) ? (bancaAtual * sPerc) : valorManual;
+            bancaAtual -= valorFinal; stops++; historicoValores.push({tipo: 'stop', valor: valorFinal}); 
+        }
+        diaAtual++; historicoBanca.push(bancaAtual);
+        localStorage.setItem('dadosGestaoFH_AutoV1', JSON.stringify({
+            bancaAtual, diaAtual, metas, stops, historicoBanca, historicoValores,
+            inpBanca: document.getElementById('inpBanca').value, inpMeta: document.getElementById('inpMeta').value, inpStop: document.getElementById('inpStop').value
+        }));
+        document.getElementById('valorRealInput').value = ""; atualizarUI();
+    }
+    function atualizarUI() {
+        document.getElementById('bancaAtualDisplay').innerText = `R$ ${bancaAtual.toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+        document.getElementById('countMeta').innerText = metas; document.getElementById('countStop').innerText = stops;
+        const bIniOriginal = parseFloat(document.getElementById('inpBanca').value) || 500;
+        const mPerc = parseFloat(document.getElementById('inpMeta').value) / 100;
+        const sPerc = parseFloat(document.getElementById('inpStop').value) / 100;
+        let html = ''; let bancaLoop = bIniOriginal;
+        for (let i = 1; i <= 30; i++) {
+            let vM_Projetado = bancaLoop * mPerc; let vS_Projetado = bancaLoop * sPerc; 
+            let bFinalDia, cls = ""; let icone = "D" + i;
+            if (i < diaAtual) {
+                const dadoReal = historicoValores[i-1];
+                if (dadoReal.tipo === 'meta') { cls = "row-meta"; icone = "✅"; vM_Projetado = dadoReal.valor; vS_Projetado = 0; bFinalDia = bancaLoop + vM_Projetado; }
+                else { cls = "row-stop"; icone = "❌"; vM_Projetado = 0; vS_Projetado = dadoReal.valor; bFinalDia = bancaLoop - vS_Projetado; }
+            } else { if (i === diaAtual) cls = "row-atual"; bFinalDia = bancaLoop + vM_Projetado; }
+            html += `<div class="day-row ${cls}"><div>${icone}</div><div>${bancaLoop.toFixed(0)}</div><div style="color:var(--primary)">+${vM_Projetado.toFixed(0)}</div><div style="color:var(--danger)">-${vS_Projetado.toFixed(0)}</div><div>${bFinalDia.toFixed(0)}</div></div>`;
+            bancaLoop = bFinalDia;
+        }
+        document.getElementById('listaDias').innerHTML = html; renderGrafico();
+    }
+    function renderGrafico() {
+        const ctx = document.getElementById('grafico').getContext('2d');
+        if (grafico) grafico.destroy();
+        grafico = new Chart(ctx, { type: 'line', data: { labels: historicoBanca.map((_, i) => i), datasets: [{ data: historicoBanca, borderColor: '#00ff95', borderWidth: 2, fill: true, backgroundColor: 'rgba(0, 255, 149, 0.05)', tension: 0.3 }] }, options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } } });
+    }
+    function zerarTudo() { if(confirm("Zerar tudo?")) { localStorage.removeItem('dadosGestaoFH_AutoV1'); resetValoresDefault(); atualizarUI(); } }
+    function switchTab(tab) {
+        document.getElementById('tab-radar').classList.toggle('hidden', tab !== 'radar');
+        document.getElementById('tab-gestao').classList.toggle('hidden', tab !== 'gestao');
+        document.querySelectorAll('.tab-btn').forEach((b, i) => b.classList.toggle('active', (tab==='radar' && i===0) || (tab==='gestao' && i===1)));
+        if(tab === 'gestao') renderGrafico();
+    }
+    window.onload = () => { initGestao(); processarRadar(); };
+</script>
+</body>
+</html>
