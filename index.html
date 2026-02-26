@@ -10,29 +10,77 @@
         html { zoom: 1.15; }
         :root {
             --bg: #000;
-            --card: #111;
+            --card: rgba(17, 17, 17, 0.7); /* Ajustado para dar transparência à logo */
             --primary: #00ff95; 
             --danger: #ff3131;  
             --text: #ffffff;
             --accent: #ccff00;
         }
         body { font-family: 'Segoe UI', Arial, sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 10px; min-height: 100vh; }
-        .container { max-width: 100%; margin: auto; display: flex; flex-direction: column; gap: 10px; padding-bottom: 40px; }
+        
+        /* --- AJUSTE DA LOGO --- */
+        .marca-dagua-fundo {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 0; 
+            width: 130%; /* Bem maior */
+            max-width: 600px;
+            opacity: 0.8; /* Bem mais escura/nítida */
+            pointer-events: none;
+            filter: brightness(0.7); /* Mais contraste */
+        }
+
+        .container { max-width: 100%; margin: auto; display: flex; flex-direction: column; gap: 10px; padding-bottom: 40px; position: relative; z-index: 1; }
         .nav-tabs { display: flex; gap: 5px; margin-bottom: 5px; position: sticky; top: 0; z-index: 100; background: #000; padding: 5px 0; }
         .tab-btn { flex: 1; padding: 12px; border: none; background: #222; color: #888; cursor: pointer; border-radius: 8px; font-weight: bold; text-transform: uppercase; font-size: 0.85rem; }
         .tab-btn.active { background: var(--primary); color: #000; box-shadow: 0 0 10px var(--primary); }
-        .card { background: var(--card); border: 2px solid #333; border-radius: 12px; padding: 12px; }
+        
+        .card { background: var(--card); border: 2px solid #333; border-radius: 12px; padding: 12px; backdrop-filter: none; }
+        
         .label { color: var(--accent); font-size: 0.9rem; font-weight: bold; text-transform: uppercase; margin-bottom: 8px; display: block; border-left: 4px solid var(--accent); padding-left: 8px; }
-        .contador-neon { display: flex; justify-content: space-around; background: #111; padding: 10px; border-radius: 12px; border: 1px solid #333; }
-        .count-num { font-size: 2.5rem; font-weight: 900; line-height: 1; }
+        
+        .contador-wrapper { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            background: rgba(17, 17, 17, 0.8); 
+            padding: 15px 5px; 
+            border-radius: 12px; 
+            border: 1px solid #333; 
+            margin-bottom: 5px;
+            gap: 5px;
+        }
+        .radar-header-mid { 
+            font-family: 'Playfair Display', serif; 
+            font-style: italic; 
+            font-size: 32px; 
+            color: var(--primary); 
+            text-shadow: 0 0 15px rgba(0, 255, 149, 0.5);
+            flex: 2;
+            text-align: center;
+            line-height: 1;
+            white-space: nowrap;
+        }
+        
+        @media (max-width: 360px) {
+            .radar-header-mid { font-size: 26px; }
+            .count-num { font-size: 2.2rem; }
+        }
+
+        .count-box { flex: 1; text-align: center; }
+        .count-num { font-size: 2.8rem; font-weight: 900; line-height: 1; }
         .neon-red { color: #ff3131; text-shadow: 0 0 10px #ff3131; }
         .neon-black { color: #fff; text-shadow: 0 0 10px #aaa; }
-        .teclado { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; background: #111; padding: 8px; border-radius: 12px; border: 2px solid #333; }
-        .n { border: none; color: #fff; padding: 18px 0; font-weight: 900; font-size: 1.2rem; border-radius: 6px; cursor: pointer; }
+
+        .teclado { display: grid; grid-template-columns: repeat(6, 1fr); gap: 5px; background: rgba(17, 17, 17, 0.9); padding: 8px; border-radius: 12px; border: 2px solid #333; width: 100%; box-sizing: border-box; }
+        .n { border: none; color: #fff; padding: 18px 0; font-weight: 900; font-size: 1.2rem; border-radius: 6px; cursor: pointer; width: 100%; }
         .red { background: #ff3131; border-bottom: 3px solid #8b0000; }
         .black { background: #2b2b2b; border-bottom: 3px solid #000; }
         .green { background: #00ff41; grid-column: span 6; color: #000; font-size: 1.5rem; }
-        .painel-giros { background: #111; border: 1px solid #444; border-radius: 12px; padding: 8px; display: flex; gap: 8px; overflow-x: auto; min-height: 100px; }
+        
+        .painel-giros { background: rgba(17, 17, 17, 0.5); border: 1px solid #444; border-radius: 12px; padding: 8px; display: flex; gap: 8px; overflow-x: auto; min-height: 100px; }
         .giro-item { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 75px; }
         .mini-ball { min-width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1rem; border: 2px solid #fff; }
         .tag { font-size: 0.65rem; font-weight: bold; padding: 2px; border-radius: 3px; text-transform: uppercase; width: 100%; text-align: center; display: block; }
@@ -48,9 +96,11 @@
         .c1 { color: #00ffaa; border: 1px solid #00ffaa; } .c2 { color: #ff9100; border: 1px solid #ff9100; } .c3 { color: #ffffff; border: 1px solid #ffffff; }
         .setor-zero { background: #00ff41; color: #000; } .setor-voisins { background: #ffea00; color: #000; } .setor-tier { background: #ff9100; color: #000; } .setor-orph { background: #bc13fe; color: #fff; }
 
-        .gestao-header { font-family: 'Playfair Display', serif; font-style: italic; font-size: 28px; color: var(--primary); text-align: center; margin-bottom: 15px; }
+        .gestao-header { font-family: 'Playfair Display', serif; font-style: italic; font-size: 32px; color: var(--primary); text-align: center; margin-bottom: 15px; }
         .placar { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .placar-item { padding: 12px; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
+        .placar-item-meta { padding: 15px; border-radius: 12px; text-align: center; background: rgba(0, 255, 149, 0.15); border: 2px solid var(--primary); }
+        .placar-item-stop { padding: 15px; border-radius: 12px; text-align: center; background: rgba(255, 49, 49, 0.15); border: 2px solid var(--danger); }
+        
         input { background: #1f2937; border: 1px solid #333; border-radius: 8px; padding: 12px; color: white; width: 100%; text-align: center; box-sizing: border-box; font-size: 1.1rem; }
         .btn-gestao { padding: 18px; border-radius: 8px; border: none; font-weight: bold; cursor: pointer; font-size: 1.1rem; }
         .chart-container { height: 180px; margin: 15px 0; }
@@ -64,13 +114,15 @@
         .gold-confluencia { border: 3px solid var(--accent) !important; box-shadow: 0 0 12px var(--accent); transform: scale(1.05); z-index: 5; }
         .hidden { display: none; }
         .txt-red { color: #ff3131; } .txt-white { color: #ffffff; } .txt-green { color: #00ff41; }
-        
         .soma-item { cursor: pointer; transition: all 0.2s; position: relative; }
         .soma-item:active { transform: scale(0.9); }
         .soma-selecionada { border: 3px solid var(--accent) !important; box-shadow: 0 0 15px var(--accent); }
     </style>
 </head>
 <body>
+
+<img src="https://i.ibb.co/tM2NZ7DB/Design-sem-nome.png" class="marca-dagua-fundo" alt="Marca d'água">
+
 <div class="container">
     <div class="nav-tabs">
         <button class="tab-btn active" onclick="switchTab('radar')">Radar de Jogo</button>
@@ -78,16 +130,18 @@
     </div>
 
     <div id="tab-radar">
-        <div class="contador-neon">
-            <div style="text-align:center"><small>VERMELHO</small><br><span id="txtVermelho" class="count-num neon-red">0</span></div>
-            <div style="text-align:center"><small>PRETO</small><br><span id="txtPreto" class="count-num neon-black">0</span></div>
+        <div class="contador-wrapper">
+            <div class="count-box"><small>VERM.</small><br><span id="txtVermelho" class="count-num neon-red">0</span></div>
+            <div class="radar-header-mid">Método L.O</div>
+            <div class="count-box"><small>PRETO</small><br><span id="txtPreto" class="count-num neon-black">0</span></div>
         </div>
+
         <div class="teclado" id="teclado"><button class="n green" onclick="add(0)">0</button></div>
         
         <div class="card">
             <div class="ciclo-selector">
-                <button class="ciclo-btn active" id="btn14" onclick="setLimite(14)">ANALISAR 14 GIROS</button>
-                <button class="ciclo-btn" id="btn50" onclick="setLimite(50)">ANALISAR 50 GIROS</button>
+                <button class="ciclo-btn active" id="btn14" onclick="setLimite(14)">14 GIROS</button>
+                <button class="ciclo-btn" id="btn50" onclick="setLimite(50)">50 GIROS</button>
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px">
                 <span class="label" style="margin:0">HISTÓRICO</span>
@@ -97,7 +151,7 @@
         </div>
 
         <div class="card">
-            <span class="label" id="labelRegiaoForte">MONITOR DE REGIÕES</span>
+            <span class="label" id="labelRegiaoForte">REGIÕES</span>
             <div id="regioes" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;"></div>
             <div id="displayAlvosRegiao" style="margin-top: 10px; display: none;">
                 <div id="alvosRegiaoForte" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 6px;"></div>
@@ -108,7 +162,7 @@
             <div id="somas" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;"></div>
         </div>
         <div id="sugestao" class="card" style="display:none; border: 2px solid var(--accent); text-align: center;">
-            <span style="color:var(--accent); font-weight:bold;">🎯 FAMÍLIA DO ALVO: <span id="alvoID"></span></span>
+            <span style="color:var(--accent); font-weight:bold;">🎯 FAMÍLIA: <span id="alvoID"></span></span>
             <div id="fichas" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 8px;"></div>
         </div>
         <div style="display: flex; gap: 8px; margin-top: 5px;">
@@ -118,10 +172,10 @@
     </div>
     
     <div id="tab-gestao" class="hidden">
-        <div class="gestao-header">Fabricio Henrique</div>
+        <div class="gestao-header">Método L.O</div>
         <div class="placar">
-            <div class="placar-item"><small>DIAS META</small><br><span id="countMeta" style="font-size:1.3rem; font-weight:bold">0</span></div>
-            <div class="placar-item"><small>DIAS STOP</small><br><span id="countStop" style="font-size:1.3rem; font-weight:bold">0</span></div>
+            <div class="placar-item-meta"><small style="color: var(--primary); font-weight: bold;">DIAS META</small><br><span id="countMeta" style="font-size:2rem; font-weight:bold">0</span></div>
+            <div class="placar-item-stop"><small style="color: var(--danger); font-weight: bold;">DIAS STOP</small><br><span id="countStop" style="font-size:2rem; font-weight:bold">0</span></div>
         </div>
         <div class="card" style="margin-top:10px">
             <div style="display:grid; grid-template-columns:repeat(3,1fr); gap:5px; margin-bottom:10px">
@@ -146,12 +200,13 @@
                 <div>DIA</div><div>INÍCIO</div><div>META(+)</div><div>STOP(-)</div><div>BANCA F.</div>
             </div>
             <div id="listaDias"></div>
-            <button onclick="zerarTudo()" style="background:none; border:none; color:#555; width:100%; margin-top:20px; font-size:10px;">REINICIAR TUDO</button>
+            <button onclick="zerarTudo()" style="background:none; border:none; color:#555; width:100%; margin-top:20px; font-size:10px; cursor:pointer;">REINICIAR TUDO</button>
         </div>
     </div>
 </div>
 
 <script>
+    // --- LÓGICA DO SEU APP (MANTIDA ORIGINAL) ---
     let limiteGiros = 14;
     let terminalSelecionadoManual = null;
     const pesosMaster = {
@@ -238,7 +293,6 @@
         document.getElementById('txtVermelho').innerText = v;
         document.getElementById('txtPreto').innerText = p;
         let entries = Object.entries(placarPesos).sort((a,b) => b[1]-a[1]);
-        
         let alvoFinal = (terminalSelecionadoManual !== null) ? terminalSelecionadoManual : (entries.length > 0 ? entries[0][0] : null);
 
         renderSomas(entries, alvoFinal);
@@ -249,13 +303,11 @@
     function renderSomas(entries, alvoFinal) {
         const sDiv = document.getElementById('somas'); sDiv.innerHTML = '';
         if(entries.length === 0) return;
-        
         entries.slice(0, 9).forEach(([num, peso]) => {
             if(peso === 0) return;
             let nI = parseInt(num);
             let cor = nI==0?'#00ff41':(vermelhos.includes(nI)?'#ff3131':'#2b2b2b');
             let selecionado = (num == alvoFinal) ? 'soma-selecionada' : '';
-            
             sDiv.innerHTML += `<div class="soma-item ${selecionado}" onclick="selecionarTerminal(${num})" style="background:${cor}; border:1px solid #333; padding:6px; text-align:center; border-radius:8px">
                 <span style="font-weight:bold; font-size:1.1rem">${num}</span><br><small style="color:#ccff00">${peso}X</small>
             </div>`;
@@ -272,13 +324,13 @@
         for(let r in fReg) {
             let isForte = fReg[r] === maxR && maxR > 0;
             if(isForte && !regForte) regForte = r;
-            rDiv.innerHTML += `<div style="background:#1a1a1a; padding:8px; border-radius:8px; text-align:center; border:1px solid ${isForte?'#ccff00':'#333'}">
+            rDiv.innerHTML += `<div style="background:rgba(26,26,26,0.6); padding:8px; border-radius:8px; text-align:center; border:1px solid ${isForte?'#ccff00':'#333'}">
                 <span style="font-weight:bold">${colorirTitulo(r)}</span><br><small style="color:#ccff00">${fReg[r]}X</small>
             </div>`;
         }
         if(regForte) {
             document.getElementById('displayAlvosRegiao').style.display = 'block';
-            document.getElementById('labelRegiaoForte').innerHTML = `FOCO: REGIÃO ${colorirTitulo(regForte)}`;
+            document.getElementById('labelRegiaoForte').innerHTML = `REGIÕES - FOCO: ${colorirTitulo(regForte)}`;
             regioesMapeadas[regForte].forEach(num => {
                 let segueCor = (tendencia === 'V' && vermelhos.includes(num)) || (tendencia === 'P' && num !== 0 && !vermelhos.includes(num));
                 let corBall = num===0?'#00ff41':(vermelhos.includes(num)?'#ff3131':'#2b2b2b');
@@ -294,17 +346,11 @@
         if(alvo === null) return;
         sugDiv.style.display = 'block'; fichasDiv.innerHTML = '';
         document.getElementById('alvoID').innerText = alvo;
-        
         for(let i=0; i<=36; i++) {
             let d1 = Math.floor(i/10), d2 = i%10;
             let mostrar = false;
-            
-            if (i < 10) { 
-                if (i == alvo) mostrar = true; 
-            } else {
-                if (d1 + d2 == alvo || Math.abs(d1 - d2) == alvo) mostrar = true;
-            }
-
+            if (i < 10) { if (i == alvo) mostrar = true; } 
+            else { if (d1 + d2 == alvo || Math.abs(d1 - d2) == alvo) mostrar = true; }
             if(mostrar) {
                 let isGold = numerosRegiaoForte.includes(i);
                 let cor = i===0?'#00ff41':(vermelhos.includes(i)?'#ff3131':'#2b2b2b');
